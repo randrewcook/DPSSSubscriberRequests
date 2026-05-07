@@ -1,0 +1,50 @@
+{
+  "name": "dpss-subscriber-requests",
+  "version": "1.0.1",
+  "description": "Public subscription request management app for DPSS data subscriptions",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "db:migrate": "node db/migrate.js",
+    "start:test-smtp": "node scripts/start-test-smtp.js",
+    "stop:test-smtp": "node scripts/stop-test-smtp.js",
+    "version:show": "node -p \"require('./package.json').version\"",
+    "version:patch": "npm version patch --no-git-tag-version",
+    "version:minor": "npm version minor --no-git-tag-version",
+    "version:major": "npm version major --no-git-tag-version",
+    "lint": "eslint src public tests db --max-warnings 0",
+    "test": "jest --runInBand --ci"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@azure/identity": "^4.13.1",
+    "@azure/keyvault-secrets": "^4.11.2",
+    "axios": "^1.16.0",
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.4.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^8.0.7",
+    "pg": "^8.20.0",
+    "pino": "^10.3.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.3.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-security": "^4.0.0",
+    "jest": "^30.3.0",
+    "nodemon": "^3.1.14",
+    "smtp-server": "^3.18.4",
+    "supertest": "^7.2.2"
+  }
+}

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | Data Hub Subscription Request Management</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="admin-shell">
+    <div class="workspace-shell">
+      <header class="topbar">
+        <div>
+          <h1>DPSS Subscription Request Management</h1>
+          <p>Administrative queue for subscriber request intake and lifecycle updates.</p>
+        </div>
+        <button id="aboutUsBtn" type="button" style="background: transparent; color: #ffffff; border: none; padding: 8px 12px; cursor: pointer; font-size: 0.9rem; text-decoration: underline;">About</button>
+      </header>
+
+      <div class="breadcrumb-bar">
+        <span>Tenants</span>
+        <span>/</span>
+        <span>Admin Queue</span>
+      </div>
+
+      <main class="content-area">
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Admin Workspace</h2>
+              <p class="panel-subtitle">Sign in to review open requests, inspect details, and update status.</p>
+            </div>
+          </div>
+
+          <div class="form">
+            <div id="authSection" class="stack">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="adminEmail">Email</label>
+                  <input id="adminEmail" />
+                </div>
+                <div class="form-group">
+                  <label for="adminPassword">Password</label>
+                  <input id="adminPassword" type="password" />
+                </div>
+              </div>
+              <div class="button-group">
+                <button id="adminLoginBtn" type="button">Login</button>
+              </div>
+              <pre id="authResult"></pre>
+            </div>
+
+            <div id="queueSection" class="stack" style="display:none">
+              <div class="button-group">
+                <button id="logoutBtn" type="button">Logout</button>
+              </div>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="statusFilter">Status Filter</label>
+                  <select id="statusFilter">
+                    <option value="open">Open (New + In Review)</option>
+                    <option value="new">New</option>
+                    <option value="in review">In Review</option>
+                    <option value="complete">Complete</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="button-group">
+                <button id="loadRequestsBtn" type="button">Reload</button>
+              </div>
+
+              <div class="table-wrap">
+                <table id="requestsTable">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Status</th>
+                      <th>Type</th>
+                      <th>Submitter</th>
+                      <th>Created</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="requestsBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div id="detailSection" class="stack" style="display:none">
+              <div class="button-group">
+                <button id="backBtn" type="button">Back to Queue</button>
+              </div>
+              <div id="detailContent"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- About Us Modal -->
+  <div id="aboutModal" class="modal" style="display:none">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>About</h2>
+        <button id="closeAboutBtn" type="button" class="modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="about-section">
+          <h3>© 2026 Itron. All rights reserved</h3>
+        </div>
+        <div class="about-section">
+          <h4>Company</h4>
+          <p>Itron</p>
+        </div>
+        <div class="about-section">
+          <h4>Version</h4>
+          <p>1.1.0</p>
+        </div>
+        <div class="about-section">
+          <h4>Contact Information</h4>
+          <p><strong>Phone</strong><br>(+1) 509-891-3700</p>
+          <p><strong>Email</strong><br>andrew.cook@itron.com</p>
+        </div>
+        <div class="about-section">
+          <h4>Itron Access</h4>
+          <p><a href="https://customer.itron.com" target="_blank" rel="noopener noreferrer">https://customer.itron.com</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/admin.js"></script>
+</body>
+</html>

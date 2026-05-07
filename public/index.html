@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Hub Subscription Request Management</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="admin-shell">
+    <div class="workspace-shell">
+      <header class="topbar">
+        <div>
+          <h1>DPSS Subscription Request Management</h1>
+          <p>Register new or existing subscribers and submit product subscription requests.</p>
+        </div>
+        <button id="aboutUsBtn" type="button" style="background: transparent; color: #ffffff; border: none; padding: 8px 12px; cursor: pointer; font-size: 0.9rem; text-decoration: underline;">About</button>
+      </header>
+
+      <div class="breadcrumb-bar">
+        <span>Tenants</span>
+        <span>/</span>
+        <span>Subscription Requests</span>
+      </div>
+
+      <main class="content-area">
+
+        <!-- Step 1: Subscriber Information -->
+        <section class="panel" id="step1Panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Step 1 — Subscriber Information</h2>
+              <p class="panel-subtitle">Select the subscriber type and provide the required details.</p>
+            </div>
+          </div>
+
+          <div class="form">
+            <div class="form" style="max-width:320px">
+              <div class="form-group">
+                <label for="region">Region</label>
+                <select id="region" style="width:fit-content;min-width:100%">
+                  <option value="USA">USA</option>
+                  <option value="Canada">Canada</option>
+                  <option value="Europe">Europe</option>
+                  <option value="Australia">Australia</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form" style="max-width:320px">
+              <div class="form-group">
+                <label for="flowType">Subscriber Type</label>
+                <select id="flowType" style="width:fit-content;min-width:100%">
+                  <option value="existing">Existing Subscriber</option>
+                  <option value="new">New Subscriber</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Existing subscriber fields -->
+            <div id="existingFields" class="stack">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="subscriberId">Subscriber ID</label>
+                  <input id="subscriberId" autocomplete="off" />
+                </div>
+              </div>
+              <div class="button-group">
+                <button id="validateExistingBtn" type="button">Validate Subscriber</button>
+              </div>
+              <div id="existingContactFields" style="display:none">
+                <p style="font-size:0.82rem;color:#576772;margin:4px 0 10px">The following details were retrieved from the subscriber record. Complete the remaining fields and proceed.</p>
+                <div class="form-grid">
+                  <div class="form-group"><label for="existingCompanyName">Company Name</label><input id="existingCompanyName" /></div>
+                  <div class="form-group"><label for="existingEmail">Company Email</label><input id="existingEmail" type="email" /></div>
+                  <div class="form-group"><label for="existingFirstName">Developer First Name</label><input id="existingFirstName" /></div>
+                  <div class="form-group"><label for="existingLastName">Developer Last Name</label><input id="existingLastName" /></div>
+                  <div class="form-group"><label for="existingSponsorName">Itron Sponsor Name</label><input id="existingSponsorName" /></div>
+                  <div class="form-group"><label for="existingSponsorEmail">Itron Sponsor Email</label><input id="existingSponsorEmail" type="email" /></div>
+                </div>
+              </div>
+              <pre id="existingValidationResult" style="display:none"></pre>
+              <div id="existingSubscriptionsGroup" class="form-group" style="display:none">
+                <label>Existing Subscriptions</label>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Subscription ID</th>
+                        <th>Tenant Short Code</th>
+                        <th>Data Product Name</th>
+                        <th>Status</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                      </tr>
+                    </thead>
+                    <tbody id="existingSubscriptionsBody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- New subscriber fields -->
+            <div id="newFields" class="stack" style="display:none">
+              <div class="form-grid">
+                <div class="form-group"><label for="companyName">Company Name</label><input id="companyName" /></div>
+                <div class="form-group"><label for="companyAddress">Company Address</label><input id="companyAddress" /></div>
+                <div class="form-group"><label for="phoneNumber">Phone Number</label><input id="phoneNumber" type="tel" /></div>
+                <div class="form-group"><label for="email">Company Email</label><input id="email" type="email" /></div>
+                <div class="form-group"><label for="firstName">Developer First Name</label><input id="firstName" /></div>
+                <div class="form-group"><label for="lastName">Developer Last Name</label><input id="lastName" /></div>
+                <div class="form-group"><label for="sponsorName">Itron Sponsor Name</label><input id="sponsorName" /></div>
+                <div class="form-group"><label for="sponsorEmail">Itron Sponsor Email</label><input id="sponsorEmail" type="email" /></div>
+              </div>
+              <div class="button-group">
+                <button id="continueNewBtn" type="button">Continue to Product Selection</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 2: Region & Product Selection (hidden until step 1 complete) -->
+        <section class="panel" id="step2Panel" style="display:none">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Step 2 — Product Selection</h2>
+              <p class="panel-subtitle">Choose the data products you need, then specify tenant mappings and submit.</p>
+            </div>
+          </div>
+
+          <div class="form">
+            <div class="button-group">
+              <button id="loadProductsBtn" type="button">Load Data Products</button>
+            </div>
+
+            <div class="form-group" id="productsGroup" style="display:none">
+              <label>Available Data Products</label>
+              <div class="selection-controls">
+                <label class="control-checkbox" for="selectAllProductsCheckbox">
+                  <input id="selectAllProductsCheckbox" type="checkbox" />
+                  <span>Select All</span>
+                </label>
+                <label class="control-checkbox" for="clearAllProductsCheckbox">
+                  <input id="clearAllProductsCheckbox" type="checkbox" />
+                  <span>Clear All</span>
+                </label>
+              </div>
+              <div id="products" class="checkbox-list" role="group" aria-label="Available Data Products"></div>
+              <div class="field-note">Check one or more data products. Use Select All or Clear All for bulk selection.</div>
+              <div id="productsValidation" class="field-validation" style="display:none"></div>
+            </div>
+
+            <div class="form-group" id="tenantsGroup" style="display:none">
+              <label for="tenantShortCodes">Tenant Short Codes</label>
+              <div id="tenantTokenInput" class="token-input" aria-label="Tenant Short Codes">
+                <div id="tenantTokenList" class="token-list"></div>
+                <input id="tenantShortCodes" placeholder="Type a tenant short code and press Enter" />
+              </div>
+              <div class="field-note">Enter a comma-delimited list of tenant short codes. Each selected data product will be requested for all listed tenant short codes.</div>
+              <div id="tenantValidation" class="field-validation" style="display:none"></div>
+            </div>
+
+            <div class="button-group" id="submitGroup" style="display:none">
+              <button id="submitBtn" type="button" class="btn-primary">Submit Request</button>
+              <span class="recaptcha-notice">Protected by reCAPTCHA</span>
+            </div>
+
+            <pre id="result"></pre>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- About Us Modal -->
+  <div id="aboutModal" class="modal" style="display:none">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>About</h2>
+        <button id="closeAboutBtn" type="button" class="modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="about-section">
+          <h3>© 2026 Itron. All rights reserved</h3>
+        </div>
+        <div class="about-section">
+          <h4>Company</h4>
+          <p>Itron</p>
+        </div>
+        <div class="about-section">
+          <h4>Version</h4>
+          <p>1.1.0</p>
+        </div>
+        <div class="about-section">
+          <h4>Contact Information</h4>
+          <p><strong>Phone</strong><br>(+1) 509-891-3700</p>
+          <p><strong>Email</strong><br>andrew.cook@itron.com</p>
+        </div>
+        <div class="about-section">
+          <h4>Itron Access</h4>
+          <p><a href="https://customer.itron.com" target="_blank" rel="noopener noreferrer">https://customer.itron.com</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
