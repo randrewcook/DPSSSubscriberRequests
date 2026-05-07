@@ -15,6 +15,15 @@ const detailContent = document.getElementById('detailContent');
 let token = '';
 let currentDetailRequestId = null;
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 adminLoginBtn.addEventListener('click', async () => {
   const email = String(adminEmail.value || '').trim();
   const password = adminPassword.value || '';
@@ -78,14 +87,15 @@ async function loadRequests() {
     requestsBody.innerHTML = requests.map((item) => {
       const createdAt = new Date(item.created_at).toLocaleString();
       const submitter = item.email || `${item.first_name || ''} ${item.last_name || ''}`.trim() || item.company_name || 'Unknown';
+      const requestId = Number(item.id);
       return `
         <tr>
-          <td>${item.id}</td>
-          <td>${item.status}</td>
-          <td>${item.flow_type}</td>
-          <td>${submitter}</td>
-          <td>${createdAt}</td>
-          <td><button type="button" class="action-btn" onclick="viewDetail(${item.id})">View</button></td>
+          <td>${escapeHtml(requestId)}</td>
+          <td>${escapeHtml(item.status)}</td>
+          <td>${escapeHtml(item.flow_type)}</td>
+          <td>${escapeHtml(submitter)}</td>
+          <td>${escapeHtml(createdAt)}</td>
+          <td><button type="button" class="action-btn" onclick="viewDetail(${escapeHtml(requestId)})">View</button></td>
         </tr>
       `;
     }).join('');
@@ -104,7 +114,7 @@ async function viewDetail(requestId) {
 
     if (!response.ok) {
       const data = await response.json();
-      detailContent.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+      detailContent.innerHTML = `<pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre>`;
       queueSection.style.display = 'none';
       detailSection.style.display = 'block';
       return;
@@ -112,24 +122,26 @@ async function viewDetail(requestId) {
 
     const data = await response.json();
     const req = data.request;
-    const products = data.products.map((p) => p.data_product_id).join(', ');
-    const history = data.history.map((h) => `${h.changed_at}: ${h.old_status} → ${h.new_status} (${h.changed_by})`).join('<br>');
+    const products = data.products.map((p) => escapeHtml(p.data_product_id)).join(', ');
+    const history = data.history
+      .map((h) => `${escapeHtml(h.changed_at)}: ${escapeHtml(h.old_status)} → ${escapeHtml(h.new_status)} (${escapeHtml(h.changed_by)})`)
+      .join('<br>');
 
     let detailHtml = `
       <div class="detail-card">
-      <h3 class="detail-heading">Request #${req.id}</h3>
+      <h3 class="detail-heading">Request #${escapeHtml(req.id)}</h3>
       <table class="detail-table">
         <tr>
           <td class="detail-key">Status</td>
-          <td>${req.status}</td>
+          <td>${escapeHtml(req.status)}</td>
         </tr>
         <tr>
           <td class="detail-key">Flow Type</td>
-          <td>${req.flow_type}</td>
+          <td>${escapeHtml(req.flow_type)}</td>
         </tr>
         <tr>
           <td class="detail-key">Region</td>
-          <td>${req.region}</td>
+          <td>${escapeHtml(req.region)}</td>
         </tr>
         <tr>
           <td class="detail-key">Products</td>
@@ -137,15 +149,15 @@ async function viewDetail(requestId) {
         </tr>
         <tr>
           <td class="detail-key">Name</td>
-          <td>${req.first_name || ''} ${req.last_name || ''} (${req.company_name || 'N/A'})</td>
+          <td>${escapeHtml(req.first_name || '')} ${escapeHtml(req.last_name || '')} (${escapeHtml(req.company_name || 'N/A')})</td>
         </tr>
         <tr>
           <td class="detail-key">Email</td>
-          <td>${req.email || 'N/A'}</td>
+          <td>${escapeHtml(req.email || 'N/A')}</td>
         </tr>
         <tr>
           <td class="detail-key">Created</td>
-          <td>${new Date(req.created_at).toLocaleString()}</td>
+          <td>${escapeHtml(new Date(req.created_at).toLocaleString())}</td>
         </tr>
       </table>
 
@@ -173,7 +185,7 @@ async function viewDetail(requestId) {
     queueSection.style.display = 'none';
     detailSection.style.display = 'block';
   } catch (error) {
-    detailContent.innerHTML = `<pre>Error: ${error.message}</pre>`;
+    detailContent.innerHTML = `<pre>Error: ${escapeHtml(error.message)}</pre>`;
     queueSection.style.display = 'none';
     detailSection.style.display = 'block';
   }

@@ -12,6 +12,10 @@ const adminRoutes = require('./routes/admin');
 
 const app = express();
 
+if (!String(config.auth.jwtSecret || '').trim()) {
+  throw new Error('JWT_SECRET must be configured. Refusing to start with an empty JWT signing secret.');
+}
+
 const cspDirectives = helmet.contentSecurityPolicy.getDefaultDirectives();
 cspDirectives['script-src'] = ["'self'", 'https://www.google.com', 'https://www.gstatic.com'];
 cspDirectives['frame-src'] = ["'self'", 'https://www.google.com'];
@@ -36,7 +40,10 @@ app.use(rateLimit({
 const allowedOrigins = new Set(config.cors.allowedOrigins);
 app.use(cors({
   origin(origin, cb) {
-    if (!origin || allowedOrigins.size === 0 || allowedOrigins.has(origin)) {
+    if (!origin) {
+      return cb(null, true);
+    }
+    if (allowedOrigins.size > 0 && allowedOrigins.has(origin)) {
       return cb(null, true);
     }
     return cb(new Error('CORS not allowed'));

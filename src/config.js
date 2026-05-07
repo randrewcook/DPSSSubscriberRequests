@@ -117,7 +117,9 @@ const config = {
   databaseUrl: process.env.DATABASE_URL || '',
   auth: {
     jwtSecret: process.env.JWT_SECRET || '',
-    jwtExpiresIn: process.env.JWT_EXPIRES_IN || '8h'
+    jwtExpiresIn: process.env.JWT_EXPIRES_IN || '8h',
+    bootstrapEnabled: String(process.env.ADMIN_BOOTSTRAP_ENABLED || 'false').toLowerCase() === 'true',
+    bootstrapToken: process.env.ADMIN_BOOTSTRAP_TOKEN || ''
   },
   smtp: {
     mode: String(process.env.SMTP_MODE || 'real').trim().toLowerCase() === 'local' ? 'local' : 'real',

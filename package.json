@@ -1,6 +1,6 @@
 {
   "name": "dpss-subscriber-requests",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Public subscription request management app for DPSS data subscriptions",
   "main": "src/server.js",
   "scripts": {

@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
 const { pool } = require('../db');
+const { config } = require('../config');
 const { authenticateAdmin, signAdminToken, requireAdmin } = require('../auth');
 const { statusUpdateSchema } = require('../validation');
 
@@ -31,6 +32,16 @@ router.post('/auth/login', loginLimiter, async (req, res) => {
 });
 
 router.post('/auth/bootstrap', async (req, res) => {
+  if (!config.auth.bootstrapEnabled) {
+    return res.status(403).json({ error: 'Bootstrap is disabled.' });
+  }
+
+  const providedToken = String(req.headers['x-bootstrap-token'] || req.body?.bootstrapToken || '').trim();
+  const expectedToken = String(config.auth.bootstrapToken || '').trim();
+  if (!expectedToken || !providedToken || providedToken !== expectedToken) {
+    return res.status(401).json({ error: 'Invalid bootstrap token.' });
+  }
+
   const existing = await pool.query('SELECT id FROM admin_users LIMIT 1');
   if (existing.rows.length > 0) {
     return res.status(409).json({ error: 'Bootstrap already completed.' });
