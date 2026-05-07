@@ -146,7 +146,51 @@ const config = {
   },
   keyVault: {
     allowEnvFallback: String(process.env.KEY_VAULT_ALLOW_ENV_FALLBACK || ((process.env.NODE_ENV || 'development') === 'production' ? 'false' : 'true')).toLowerCase() === 'true'
+  },
+  observability: {
+    requestIdHeader: process.env.REQUEST_ID_HEADER || 'x-request-id'
   }
 };
 
-module.exports = { config, parseCsv, parseRegionEnvironmentMap, parseRegionalKeyVaultSecretsByEnvironment };
+function validateStartupConfig(activeConfig) {
+  const cfg = activeConfig || config;
+  const failures = [];
+
+  if (!String(cfg.auth.jwtSecret || '').trim()) {
+    failures.push('JWT_SECRET must be configured.');
+  }
+
+  if (cfg.isProd) {
+    if (!cfg.databaseUrl) {
+      failures.push('DATABASE_URL must be configured in production.');
+    }
+    if (!cfg.recaptcha.secret) {
+      failures.push('RECAPTCHA_SECRET must be configured in production.');
+    }
+    if (!cfg.cors.allowedOrigins.length) {
+      failures.push('ALLOWED_ORIGINS must include at least one origin in production.');
+    }
+    if (cfg.keyVault.allowEnvFallback) {
+      failures.push('KEY_VAULT_ALLOW_ENV_FALLBACK must be false in production.');
+    }
+    if (cfg.auth.bootstrapEnabled) {
+      failures.push('ADMIN_BOOTSTRAP_ENABLED must be false in production.');
+    }
+    if (cfg.smtp.mode === 'local') {
+      failures.push('SMTP_MODE=local is not allowed in production.');
+    }
+    if (cfg.smtp.mode === 'real' && !cfg.smtp.secure) {
+      failures.push('SMTP_SECURE must be true in production when SMTP_MODE=real.');
+    }
+  }
+
+  return failures;
+}
+
+module.exports = {
+  config,
+  parseCsv,
+  parseRegionEnvironmentMap,
+  parseRegionalKeyVaultSecretsByEnvironment,
+  validateStartupConfig
+};

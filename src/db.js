@@ -12,4 +12,8 @@ async function query(text, params) {
   return pool.query(text, params);
 }
 
-module.exports = { pool, query };
+async function closePool() {
+  await pool.end();
+}
+
+module.exports = { pool, query, closePool };

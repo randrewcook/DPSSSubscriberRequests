@@ -1,16 +1,17 @@
 services:
   db:
     image: postgres:16
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: dpss_subscriber_requests
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-dpss_subscriber_requests}
     ports:
-      - "5432:5432"
+      - "${DB_EXPOSE_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d dpss_subscriber_requests"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-dpss_subscriber_requests}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -21,7 +22,7 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgres://postgres:postgres@db:5432/dpss_subscriber_requests
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-dpss_subscriber_requests}
     depends_on:
       db:
         condition: service_healthy
@@ -29,17 +30,26 @@ services:
 
   app:
     build: .
+    restart: unless-stopped
     ports:
       - "3012:3012"
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgres://postgres:postgres@db:5432/dpss_subscriber_requests
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-dpss_subscriber_requests}
     depends_on:
       db:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3012/ready >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
   pgdata:

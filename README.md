@@ -49,6 +49,9 @@ App URLs:
 - `npm run dev` - start with nodemon
 - `npm run start` - start server
 - `npm run db:migrate` - apply SQL migrations
+- `npm run db:backup` - create PostgreSQL backup (`pg_dump` custom format)
+- `npm run db:restore -- <path-to-backup>` - restore a PostgreSQL backup (`pg_restore`)
+- `npm run db:backup:verify -- <path-to-backup>` - verify backup integrity (`pg_restore --list`)
 - `npm run start:test-smtp` - start local SMTP catcher (`localhost:1025`, UI on `http://localhost:8025`)
 - `npm run stop:test-smtp` - stop local SMTP catcher
 - `npm run version:show` - print the current app version
@@ -57,6 +60,13 @@ App URLs:
 - `npm run version:major` - bump `X.Y.Z` to `(X+1).0.0` for intentional major release increments
 - `npm run lint` - run ESLint
 - `npm test` - run Jest tests
+- `npm run security:audit` - dependency vulnerability scan (fails on moderate+)
+- `npm run security:test` - security regression tests
+
+## Runtime endpoints
+- `GET /health` - liveness probe
+- `GET /ready` - readiness probe (includes database reachability)
+- `GET /metrics` - Prometheus-style metrics for request counts/statuses and uptime
 
 ## Versioning process
 Run a version bump for every shipped update so each change has a unique release number.
@@ -89,4 +99,51 @@ This keeps every update on a new version number while reserving minor and major 
    - `SMTP_MODE=real` uses `SMTP_HOST/SMTP_PORT/SMTP_SECURE/SMTP_USER/SMTP_PASS`
    - `SMTP_MODE=local` uses `LOCAL_SMTP_HOST/LOCAL_SMTP_PORT` and ignores SMTP auth/TLS settings
 - Bootstrap first admin user:
-  - `POST /api/admin/auth/bootstrap` with JSON `{ "email": "admin@company.com", "password": "strong-password" }`
+   - Bootstrap is disabled by default and should remain disabled in production.
+   - One-time bootstrap process:
+      1. Set `ADMIN_BOOTSTRAP_ENABLED=true`
+      2. Set strong `ADMIN_BOOTSTRAP_TOKEN`
+      3. Call `POST /api/admin/auth/bootstrap` with header `x-bootstrap-token: <token>` and JSON payload `{ "email": "admin@company.com", "password": "strong-password" }`
+      4. Immediately set `ADMIN_BOOTSTRAP_ENABLED=false` and rotate `ADMIN_BOOTSTRAP_TOKEN`
+
+## Production hardening policy
+- `JWT_SECRET` must be non-empty, or the app refuses to start.
+- `ALLOWED_ORIGINS` must be explicitly configured in production.
+- `KEY_VAULT_ALLOW_ENV_FALLBACK` must be `false` in production.
+- `ADMIN_BOOTSTRAP_ENABLED` must be `false` in production.
+- `SMTP_MODE=local` is blocked in production.
+- `SMTP_SECURE=true` is required in production when `SMTP_MODE=real`.
+
+## CI security checks
+On every push/PR, GitHub Actions now runs:
+- Lint + full test suite
+- Dependency vulnerability scan (`npm audit`)
+- Security regression tests (`tests/security.test.js`)
+- Dependency review on pull requests
+- Secret scanning (gitleaks)
+- CodeQL static analysis
+- SBOM generation (CycloneDX artifact)
+
+## Backup and restore guidance
+Recommended cadence:
+- Daily automated backups
+- Keep at least 14 daily copies + 8 weekly copies
+- Run backup verification immediately after each backup
+
+Example commands:
+```bash
+# Create backup
+npm run db:backup
+
+# Verify backup (replace path)
+npm run db:backup:verify -- .runtime/backups/dpss-backup-YYYY-MM-DD.dump
+
+# Restore backup (replace path)
+npm run db:restore -- .runtime/backups/dpss-backup-YYYY-MM-DD.dump
+```
+
+Migration safety checklist:
+1. Take and verify backup before running migrations.
+2. Run migrations in staging first.
+3. Validate `/ready` after deploy.
+4. If rollback is required, redeploy last known-good build and restore verified backup.

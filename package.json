@@ -1,12 +1,15 @@
 {
   "name": "dpss-subscriber-requests",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Public subscription request management app for DPSS data subscriptions",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "db:migrate": "node db/migrate.js",
+    "db:backup": "node scripts/backup-db.js",
+    "db:restore": "node scripts/restore-db.js",
+    "db:backup:verify": "node scripts/verify-backup.js",
     "start:test-smtp": "node scripts/start-test-smtp.js",
     "stop:test-smtp": "node scripts/stop-test-smtp.js",
     "version:show": "node -p \"require('./package.json').version\"",

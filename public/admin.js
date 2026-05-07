@@ -68,6 +68,17 @@ backBtn.addEventListener('click', () => {
 
 statusFilter.addEventListener('change', loadRequests);
 loadRequestsBtn.addEventListener('click', loadRequests);
+requestsBody.addEventListener('click', (event) => {
+  const button = event.target.closest('button.view-detail-btn');
+  if (!button) {
+    return;
+  }
+
+  const requestId = Number(button.getAttribute('data-request-id'));
+  if (Number.isFinite(requestId)) {
+    viewDetail(requestId);
+  }
+});
 
 async function loadRequests() {
   const filter = String(statusFilter.value || 'open');
@@ -95,7 +106,7 @@ async function loadRequests() {
           <td>${escapeHtml(item.flow_type)}</td>
           <td>${escapeHtml(submitter)}</td>
           <td>${escapeHtml(createdAt)}</td>
-          <td><button type="button" class="action-btn" onclick="viewDetail(${escapeHtml(requestId)})">View</button></td>
+          <td><button type="button" class="action-btn view-detail-btn" data-request-id="${escapeHtml(requestId)}">View</button></td>
         </tr>
       `;
     }).join('');
@@ -173,7 +184,7 @@ async function viewDetail(requestId) {
         </select>
         <label for="statusNotes">Notes</label>
         <textarea id="statusNotes" rows="3" placeholder="Optional notes for this status change"></textarea>
-        <button type="button" onclick="updateStatus()">Update Status</button>
+        <button id="updateStatusBtn" type="button">Update Status</button>
       </div>
 
       <h3 class="detail-heading" style="margin-top: 14px;">Status History</h3>
@@ -182,6 +193,10 @@ async function viewDetail(requestId) {
     `;
 
     detailContent.innerHTML = detailHtml;
+    const updateStatusBtn = document.getElementById('updateStatusBtn');
+    if (updateStatusBtn) {
+      updateStatusBtn.addEventListener('click', updateStatus);
+    }
     queueSection.style.display = 'none';
     detailSection.style.display = 'block';
   } catch (error) {
@@ -222,9 +237,6 @@ async function updateStatus() {
     alert(`Error: ${error.message}`);
   }
 }
-
-window.viewDetail = viewDetail;
-window.updateStatus = updateStatus;
 
 // ── About Us Modal ────────────────────────────────────────────────────────────
 const aboutModal = document.getElementById('aboutModal');

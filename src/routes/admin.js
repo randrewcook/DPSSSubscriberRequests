@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
 const { pool } = require('../db');
 const { config } = require('../config');
+const { logger } = require('../logger');
 const { authenticateAdmin, signAdminToken, requireAdmin } = require('../auth');
 const { statusUpdateSchema } = require('../validation');
 
@@ -24,10 +25,12 @@ router.post('/auth/login', loginLimiter, async (req, res) => {
 
   const admin = await authenticateAdmin(email, password);
   if (!admin) {
+    logger.warn({ email: String(email || '').trim().toLowerCase(), ip: req.ip }, 'Admin login failed');
     return res.status(401).json({ error: 'Invalid credentials.' });
   }
 
   const token = signAdminToken(admin);
+  logger.info({ adminId: admin.id, email: admin.email, ip: req.ip }, 'Admin login succeeded');
   return res.json({ token });
 });
 
