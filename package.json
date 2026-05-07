@@ -1,6 +1,6 @@
 {
   "name": "dpss-subscriber-requests",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Public subscription request management app for DPSS data subscriptions",
   "main": "src/server.js",
   "scripts": {
@@ -15,7 +15,9 @@
     "version:minor": "npm version minor --no-git-tag-version",
     "version:major": "npm version major --no-git-tag-version",
     "lint": "eslint src public tests db --max-warnings 0",
-    "test": "jest --runInBand --ci"
+    "test": "jest --runInBand --ci",
+    "security:audit": "npm audit --audit-level=moderate",
+    "security:test": "jest --runInBand --ci tests/security.test.js"
   },
   "keywords": [],
   "author": "",
