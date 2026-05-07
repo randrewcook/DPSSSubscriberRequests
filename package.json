@@ -1,6 +1,6 @@
 {
   "name": "dpss-subscriber-requests",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Public subscription request management app for DPSS data subscriptions",
   "main": "src/server.js",
   "scripts": {
@@ -10,6 +10,7 @@
     "start:test-smtp": "node scripts/start-test-smtp.js",
     "stop:test-smtp": "node scripts/stop-test-smtp.js",
     "version:show": "node -p \"require('./package.json').version\"",
+    "setup-hooks": "node scripts/setup-hooks.js",
     "version:patch": "npm version patch --no-git-tag-version",
     "version:minor": "npm version minor --no-git-tag-version",
     "version:major": "npm version major --no-git-tag-version",

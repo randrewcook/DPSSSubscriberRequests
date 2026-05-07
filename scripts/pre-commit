@@ -1,0 +1,5 @@
+#!/bin/sh
+# Auto-bumps the patch version on every commit (X.Y.N → X.Y.N+1).
+# Major and minor version changes are manual only.
+node scripts/bump-patch-version.js
+git add package.json package-lock.json
