@@ -12,7 +12,7 @@ const { resolveProtectedValue } = require('../services/secretProvider');
 
 const router = express.Router();
 
-async function resolveRegionCredentials(region) {
+async function resolveRegionCredentials(region, environment) {
   const hasUsClientId = config.dpssUsDataProductsClientId || config.dpssUsDataProductsClientIdKeyVaultUri;
   const hasUsClientSecret = config.dpssUsDataProductsClientSecret || config.dpssUsDataProductsClientSecretKeyVaultUri;
   if (region === 'USA' && hasUsClientId && hasUsClientSecret) {
@@ -22,6 +22,22 @@ async function resolveRegionCredentials(region) {
       tokenScope: config.dpssUsDataProductsScope
     };
   }
+
+  // Try regional Key Vault credentials first (by environment domain)
+  const regionalSecrets = config.regionalKeyVaultSecretsByEnvironment[environment];
+  if (regionalSecrets && (regionalSecrets.clientIdUri || regionalSecrets.clientSecretUri)) {
+    const regionClientId = await resolveProtectedValue({ value: '', secretUri: regionalSecrets.clientIdUri, label: `DPSS regional client id for ${region}` });
+    const regionClientSecret = await resolveProtectedValue({ value: '', secretUri: regionalSecrets.clientSecretUri, label: `DPSS regional client secret for ${region}` });
+    if (regionClientId && regionClientSecret) {
+      return {
+        clientId: regionClientId,
+        clientSecret: regionClientSecret,
+        tokenScope: undefined
+      };
+    }
+  }
+
+  // Fallback to service account credentials
   return {
     clientId: await resolveProtectedValue({ value: config.dpssServiceClientId, secretUri: config.dpssServiceClientIdKeyVaultUri, label: 'DPSS service client id' }),
     clientSecret: await resolveProtectedValue({ value: config.dpssServiceClientSecret, secretUri: config.dpssServiceClientSecretKeyVaultUri, label: 'DPSS service client secret' }),
@@ -122,7 +138,7 @@ router.post('/validate-existing', async (req, res) => {
     }
 
     const environment = resolveEnvironmentForRequest(req.body);
-    const { clientId, clientSecret, tokenScope } = await resolveRegionCredentials(region);
+    const { clientId, clientSecret, tokenScope } = await resolveRegionCredentials(region, environment);
 
     if (!clientId || !clientSecret) {
       return res.status(400).json({ valid: false, error: 'Service credentials are not configured for this region.' });
@@ -166,7 +182,7 @@ router.post('/data-products', async (req, res) => {
       logger.warn({ err: error }, 'Unable to load data product exclusions; continuing without exclusions');
     }
 
-    const { clientId, clientSecret, tokenScope: regionTokenScope } = await resolveRegionCredentials(region);
+    const { clientId, clientSecret, tokenScope: regionTokenScope } = await resolveRegionCredentials(region, environment);
     const useUsSharedCredentials = region === 'USA';
 
     if (!clientId || !clientSecret) {

@@ -40,6 +40,53 @@ function parseRegionEnvironmentMap(value) {
   return map;
 }
 
+// Default regional Key Vault secret URI mappings: environment domain -> {clientId, clientSecret} URIs
+// Each region has its own Key Vault instance for secure credential management
+const defaultRegionalKeyVaultSecretsByEnvironment = {
+  'itrontotal.com': {
+    clientIdUri: 'https://kv-usw-dpss1-prod.vault.azure.net/secrets/DPSSSubscriberClientId',
+    clientSecretUri: 'https://kv-usw-dpss1-prod.vault.azure.net/secrets/DPSSSubscriberClientSecret'
+  },
+  'itrontotal.ca': {
+    clientIdUri: 'https://kv-cac-dpss1-prod.vault.azure.net/secrets/DPSSSubscriberClientId',
+    clientSecretUri: 'https://kv-cac-dpss1-prod.vault.azure.net/secrets/DPSSSubscriberClientSecret'
+  },
+  'itroneyva.eu': {
+    clientIdUri: 'https://kv-eun-dpss1-prod.vault.azure.net/secrets/DPSSSubscriberClientId',
+    clientSecretUri: 'https://kv-eun-dpss1-prod.vault.azure.net/secrets/DPSSSubscriberClientSecret'
+  },
+  'itroneyva.com.au': {
+    clientIdUri: 'https://kv-aue-dpss1-prod.vault.azure.net/secrets/DPSSSubscriberClientId',
+    clientSecretUri: 'https://kv-aue-dpss1-prod.vault.azure.net/secrets/DPSSSubscriberClientSecret'
+  }
+};
+
+function parseRegionalKeyVaultSecretsByEnvironment(value) {
+  const raw = String(value || '').trim();
+  if (!raw) {
+    return { ...defaultRegionalKeyVaultSecretsByEnvironment };
+  }
+
+  const map = {};
+  for (const segment of raw.split('|')) {
+    const [environmentRaw, urisRaw] = segment.split(':');
+    const environment = String(environmentRaw || '').trim().toLowerCase();
+    const [clientIdUri, clientSecretUri] = String(urisRaw || '')
+      .split(',')
+      .map((uri) => String(uri || '').trim());
+
+    if (environment && clientIdUri && clientSecretUri) {
+      map[environment] = { clientIdUri, clientSecretUri };
+    }
+  }
+
+  if (Object.keys(map).length === 0) {
+    return { ...defaultRegionalKeyVaultSecretsByEnvironment };
+  }
+
+  return map;
+}
+
 const config = {
   nodeEnv: process.env.NODE_ENV || 'development',
   isProd: (process.env.NODE_ENV || 'development') === 'production',
@@ -47,6 +94,10 @@ const config = {
   logLevel: process.env.LOG_LEVEL || 'info',
   dpssAllowedEnvironments: parseCsv(process.env.DPSS_ALLOWED_ENVIRONMENTS),
   regionEnvironmentMap: parseRegionEnvironmentMap(process.env.REGION_ENVIRONMENT_MAP),
+  // Regional Key Vault secret URI mappings: environment -> {clientIdUri, clientSecretUri}
+  // Used when credentials are fetched from regional Key Vault instances
+  regionalKeyVaultSecretsByEnvironment: parseRegionalKeyVaultSecretsByEnvironment(process.env.REGIONAL_KEY_VAULT_SECRETS_BY_ENVIRONMENT),
+  // Legacy service account credentials (fallback or for non-regional use)
   dpssServiceClientId: process.env.DPSS_SERVICE_CLIENT_ID || '',
   dpssServiceClientIdKeyVaultUri: process.env.DPSS_SERVICE_CLIENT_ID_KEY_VAULT_URI || '',
   dpssServiceClientSecret: process.env.DPSS_SERVICE_CLIENT_SECRET || '',
@@ -96,4 +147,4 @@ const config = {
   }
 };
 
-module.exports = { config, parseCsv, parseRegionEnvironmentMap };
+module.exports = { config, parseCsv, parseRegionEnvironmentMap, parseRegionalKeyVaultSecretsByEnvironment };
